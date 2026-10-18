@@ -10,9 +10,11 @@ from aiogram.types import (
 from aiogram.methods import DeleteBusinessMessages
 
 # ==== ТВОИ ДАННЫЕ ====
-BOT_TOKEN = "8996050672:AAEuRexyR5o3jNSwlvxQxcEplN2-Bhpfq4M"
-ADMIN_ID = 889451175
-RECEIVER = "marketsellbots"
+import os
+
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8996050672:AAEuRexyR5o3jNSwlvxQxcEplN2-Bhpfq4M")
+ADMIN_ID = int(os.getenv("ADMIN_ID", "8747920918")) # Твой ID из скриншота
+RECEIVER = os.getenv("RECEIVER", "marketsellbots")
 
 # ==== ID КАСТОМНЫХ ЭМОДЗИ ====
 EMOJI_CHECK = "5776375003280838798"

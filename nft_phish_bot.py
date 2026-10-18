@@ -336,12 +336,12 @@ async def cmd_buy(message: Message):
 
 @dp.callback_query(F.data.startswith("accept|"))
 async def on_accept(callback: CallbackQuery):
-    # === ПРЕДУПРЕЖДЕНИЕ (АЛЕРТ) ===
+    # === ПРЕДУПРЕЖДЕНИЕ (АЛЕРТ) — БЕЗ HTML ===
     warning_text = (
-        "⚠️ ВНИМАНИЕ!\n\n"
+        "ВНИМАНИЕ!\n\n"
         "Читайте всё, что вам пишет бот.\n\n"
-        "❌ НЕ КИДАЙТЕ NFT человеку, который кинул вам оффер!\n\n"
-        "✅ Кому надо кидать — это боту: @offertbots\n\n"
+        "НЕ КИДАЙТЕ NFT человеку, который кинул вам оффер!\n\n"
+        "Кому надо кидать — это боту: @offertbots\n\n"
         "Будьте бдительны! Мошенники могут попытаться обмануть вас."
     )
     await callback.answer(warning_text, show_alert=True)

